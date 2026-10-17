@@ -2,7 +2,7 @@
 
 A Payload CMS project built with Next.js and SQLite.
 
-The initial setup includes the starter homepage, an admin panel, and the Users and Media collections. Hero Block, Hero Video, 3D View, and Image Gallery will be added next.
+The homepage is managed through Payload and supports an editable Hero Block. Hero Video, 3D View, and Image Gallery will be added in later steps.
 
 ## Requirements
 
@@ -41,12 +41,22 @@ On your first visit to the admin panel, create an administrator account. There a
 
 If the dependencies and `.env` are already set up, only `npm run dev` is needed. If your terminal cannot find `node` or `npm`, add Node.js to PATH or use the Node.js interpreter configured in WebStorm.
 
+## Editing the homepage
+
+1. Open `/admin` and sign in.
+2. Open **Homepage** and add a **Hero Block** under **Page blocks**.
+3. Enter a title and, optionally, a description and image. Images can be selected from Media or uploaded from the image field. Add meaningful alt text when uploading an image.
+4. To show a button, fill in both **Button Label** and **Button Link**. Links can be local paths such as `/team`, anchors such as `#main-content`, or full HTTP(S) URLs. A local path must point to a page that exists; `/team` is only an example.
+5. Save and refresh the public homepage to see the changes.
+
+Blocks can be reordered or removed. An empty homepage displays a short placeholder. Only signed-in users can edit the homepage; visitors can read it without signing in. Homepage content is rendered on each request, so content changes do not require a new build.
+
 ## Environment variables
 
-| Variable | Description |
-| --- | --- |
-| `DATABASE_URL` | SQLite database path. Defaults to `file:./payload.db` in the example configuration. |
-| `PAYLOAD_SECRET` | A random secret used for authentication. Keep it private. |
+| Variable         | Description                                                                         |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| `DATABASE_URL`   | SQLite database path. Defaults to `file:./payload.db` in the example configuration. |
+| `PAYLOAD_SECRET` | A random secret used for authentication. Keep it private.                           |
 
 Payload creates the database during the first development startup. Uploaded files are stored in `media/`. The database, uploads, `.env`, installed dependencies, and build output are excluded from Git.
 
@@ -56,12 +66,19 @@ Payload creates the database during the first development startup. Uploaded file
 npm run dev               # Start the development server
 npm run typecheck         # Check TypeScript types
 npm run lint              # Run ESLint
+npm test                  # Run isolated Hero integration tests
 npm run build             # Create a production build
 npm run start             # Start an existing production build
 npm run generate:types    # Regenerate types after changing the CMS schema
 ```
 
-Development startup, authentication, type checking, and linting have been verified. The production build has not yet been fully verified because previous attempts were interrupted by IDE crashes. Production database migrations and Docker setup will be added in a later step.
+Development startup, authentication, type checking, linting, and Hero integration tests have been verified. The production build has not yet been fully verified because previous attempts were interrupted by IDE crashes. Production database migrations and Docker setup will be added in a later step.
+
+## Tests
+
+`npm test` checks public read access, authenticated editing, image upload relationships, required fields, button link validation, and an empty homepage. Tests use a separate temporary SQLite database and upload directory, which are removed after the test run. Existing accounts and content are not used by these tests.
+
+The test runner uses one process and exits after the tests finish because the development schema tooling starts background services.
 
 ## Dependencies
 

@@ -1,7 +1,7 @@
 {
   "name": "fsb-racing-team-task",
   "version": "1.0.0",
-  "description": "A blank template to get started with Payload 3.0",
+  "description": "FSB Racing Team recruitment task",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -12,7 +12,8 @@
     "lint": "cross-env NODE_OPTIONS=--no-deprecation eslint .",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test --test-force-exit --test-isolation=none tests/*.test.ts"
   },
   "dependencies": {
     "@payloadcms/next": "3.91.0",

@@ -6,8 +6,7 @@
 .pnp.js
 .yarn/install-state.gz
 
-/.idea/*
-!/.idea/runConfigurations
+/.idea/
 
 # testing
 /coverage
@@ -29,7 +28,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
+.env*
+!.env.example
 
 # vercel
 .vercel
@@ -38,12 +38,19 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.env
 
 /media
-
 
 # Local database and development environment
 *.db
 *.db-shm
 *.db-wal
+*.db-journal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite-journal
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+*.sqlite3-journal
