@@ -327,7 +327,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface Homepage {
   id: number;
-  layout?: HeroBlock[] | null;
+  layout?: (HeroBlock | HeroVideoBlock)[] | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -353,6 +353,30 @@ export interface HeroBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroVideoBlock".
+ */
+export interface HeroVideoBlock {
+  title: string;
+  description?: string | null;
+  /**
+   * Upload an MP4 or WebM video. For MP4, use a browser-compatible codec such as H.264.
+   */
+  video: number | Media;
+  /**
+   * Optional image displayed before the video starts.
+   */
+  poster?: (number | null) | Media;
+  /**
+   * Automatically starts without sound. Disabled for visitors who prefer reduced motion. Browser settings may also prevent autoplay.
+   */
+  autoplay?: boolean | null;
+  loop?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'heroVideo';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "homepage_select".
  */
 export interface HomepageSelect<T extends boolean = true> {
@@ -360,6 +384,7 @@ export interface HomepageSelect<T extends boolean = true> {
     | T
     | {
         hero?: T | HeroBlockSelect<T>;
+        heroVideo?: T | HeroVideoBlockSelect<T>;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -375,6 +400,20 @@ export interface HeroBlockSelect<T extends boolean = true> {
   image?: T;
   buttonLabel?: T;
   buttonLink?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroVideoBlock_select".
+ */
+export interface HeroVideoBlockSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  video?: T;
+  poster?: T;
+  autoplay?: T;
+  loop?: T;
   id?: T;
   blockName?: T;
 }

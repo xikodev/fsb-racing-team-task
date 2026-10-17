@@ -2,7 +2,7 @@
 
 A Payload CMS project built with Next.js and SQLite.
 
-The homepage is managed through Payload and supports an editable Hero Block. Hero Video, 3D View, and Image Gallery will be added in later steps.
+The homepage is managed through Payload and supports editable Hero Block and Hero Video blocks. 3D View and Image Gallery will be added in later steps.
 
 ## Requirements
 
@@ -51,6 +51,18 @@ If the dependencies and `.env` are already set up, only `npm run dev` is needed.
 
 Blocks can be reordered or removed. An empty homepage displays a short placeholder. Only signed-in users can edit the homepage; visitors can read it without signing in. Homepage content is rendered on each request, so content changes do not require a new build.
 
+## Hero Video
+
+In **Homepage**, add a **Hero Video** block and enter a title. Upload or select an MP4 or WebM file in **Video**. The Media description field should describe the video. You can also add a description and select an optional **Poster image**.
+
+- **Autoplay (muted)** starts the video without sound. It is off by default and respects the visitor's reduced-motion setting. Browser policies can also prevent autoplay; manual controls remain available.
+- **Loop video** repeats playback when the video ends. It is off by default.
+- Native controls provide play/pause, seeking, sound controls when the video has audio, and fullscreen where supported. Videos play inline on mobile devices.
+
+Save the homepage and refresh the public page. MP4 files should use a browser-compatible codec such as H.264; a file extension alone does not guarantee playback support. Unsupported or unavailable videos display an error and a download link.
+
+For a quick upload test, use `tests/fixtures/hero-video.webm`. It is an original two-second synthetic test clip without audio, not racing footage. It is included in the repository so tests do not require FFmpeg or external downloads.
+
 ## Environment variables
 
 | Variable         | Description                                                                         |
@@ -66,17 +78,17 @@ Payload creates the database during the first development startup. Uploaded file
 npm run dev               # Start the development server
 npm run typecheck         # Check TypeScript types
 npm run lint              # Run ESLint
-npm test                  # Run isolated Hero integration tests
+npm test                  # Run isolated homepage block tests
 npm run build             # Create a production build
 npm run start             # Start an existing production build
 npm run generate:types    # Regenerate types after changing the CMS schema
 ```
 
-Development startup, authentication, type checking, linting, and Hero integration tests have been verified. The production build has not yet been fully verified because previous attempts were interrupted by IDE crashes. Production database migrations and Docker setup will be added in a later step.
+Development startup, authentication, type checking, linting, and homepage block integration tests have been verified. Hero Video playback, muted autoplay, reduced-motion behavior, loop settings, and mobile layout were also checked in Chrome. The production build has not yet been fully verified because previous attempts were interrupted by IDE crashes. Production database migrations and Docker setup will be added in a later step.
 
 ## Tests
 
-`npm test` checks public read access, authenticated editing, image upload relationships, required fields, button link validation, and an empty homepage. Tests use a separate temporary SQLite database and upload directory, which are removed after the test run. Existing accounts and content are not used by these tests.
+`npm test` checks public read access, authenticated editing, image upload relationships, required fields, button link validation, an empty homepage, and Hero Video upload relationships and playback settings. It also checks that an image cannot be selected as a video or a video as a poster. Tests use a separate temporary SQLite database and upload directory, which are removed after the test run. Existing accounts and content are not used by these tests.
 
 The test runner uses one process and exits after the tests finish because the development schema tooling starts background services.
 

@@ -79,7 +79,8 @@ test('an authenticated editor can save the hero, including its uploaded image', 
   })
   const homepage = await payload.findGlobal({ slug: 'homepage', depth: 1, overrideAccess: false })
   const hero = homepage.layout?.[0]
-  assert.equal(hero?.title, 'A new season')
+  assert.ok(hero?.blockType === 'hero')
+  assert.equal(hero.title, 'A new season')
   assert.equal(hero?.description, 'Built together.')
   assert.equal(hero?.buttonLink, 'https://example.com/team')
   assert.ok(hero?.image && typeof hero.image === 'object')
@@ -126,4 +127,74 @@ test('optional content and an empty homepage can be saved', async () => {
   assert.equal(homepage.layout?.[0]?.title, 'Title only')
   await payload.updateGlobal({ slug: 'homepage', data: { layout: [] } })
   assert.equal((await payload.findGlobal({ slug: 'homepage' })).layout?.length, 0)
+})
+
+test('Hero Video saves an uploaded video, poster, and playback settings', async () => {
+  const video = await payload.create({
+    collection: 'media',
+    data: { alt: 'Test video' },
+    filePath: path.resolve('tests/fixtures/hero-video.webm'),
+  })
+  const poster = (
+    await payload.find({
+      collection: 'media',
+      where: { mimeType: { contains: 'image/' } },
+      limit: 1,
+    })
+  ).docs[0]
+  assert.ok(poster)
+  await payload.updateGlobal({
+    slug: 'homepage',
+    data: {
+      layout: [
+        {
+          blockType: 'heroVideo',
+          title: 'On track',
+          description: 'Testing the next lap.',
+          video: video.id,
+          poster: poster.id,
+          autoplay: true,
+          loop: true,
+        },
+      ],
+    },
+  })
+  const saved = (await payload.findGlobal({ slug: 'homepage', depth: 1, overrideAccess: false }))
+    .layout?.[0]
+  assert.ok(saved?.blockType === 'heroVideo')
+  assert.equal(saved.autoplay, true)
+  assert.equal(saved.loop, true)
+  assert.ok(typeof saved.video === 'object')
+  assert.equal(saved.video.mimeType, 'video/webm')
+  assert.ok(saved.poster && typeof saved.poster === 'object')
+  assert.equal(saved.poster.id, poster.id)
+
+  await payload.updateGlobal({
+    slug: 'homepage',
+    data: {
+      layout: [
+        {
+          blockType: 'heroVideo',
+          title: 'Manual playback',
+          video: video.id,
+          autoplay: false,
+          loop: false,
+        },
+      ],
+    },
+  })
+  const manual = (await payload.findGlobal({ slug: 'homepage' })).layout?.[0]
+  assert.ok(manual?.blockType === 'heroVideo')
+  assert.equal(manual.autoplay, false)
+  assert.equal(manual.loop, false)
+
+  for (const block of [
+    { blockType: 'heroVideo' as const, title: 'Missing video' },
+    { blockType: 'heroVideo' as const, title: 'Wrong type', video: poster.id },
+    { blockType: 'heroVideo' as const, title: 'Wrong poster', video: video.id, poster: video.id },
+  ]) {
+    await assert.rejects(() =>
+      payload.updateGlobal({ slug: 'homepage', data: { layout: [block] } }),
+    )
+  }
 })

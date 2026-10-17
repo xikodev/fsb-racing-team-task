@@ -1,5 +1,6 @@
 import type { GlobalConfig } from 'payload'
 import { HeroBlock } from '../blocks/HeroBlock'
+import { HeroVideo } from '../blocks/HeroVideo'
 
 export const Homepage: GlobalConfig = {
   slug: 'homepage',
@@ -13,7 +14,7 @@ export const Homepage: GlobalConfig = {
       name: 'layout',
       label: 'Page blocks',
       type: 'blocks',
-      blocks: [HeroBlock],
+      blocks: [HeroBlock, HeroVideo],
     },
   ],
 }

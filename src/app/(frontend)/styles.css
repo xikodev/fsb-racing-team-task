@@ -167,3 +167,60 @@ h2 {
     gap: 12px;
   }
 }
+
+.hero-video {
+  padding: 72px 6%;
+  border-bottom: 1px solid #d8d7d2;
+  background: #202020;
+  color: #f5f4f0;
+}
+.video-heading {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 40px;
+  align-items: end;
+  margin-bottom: 36px;
+}
+.video-heading h1,
+.video-heading h2 {
+  font-size: clamp(36px, 4.8vw, 68px);
+}
+.video-heading .hero-description {
+  color: #c6c6c6;
+  margin: 0;
+}
+.hero-video .eyebrow {
+  color: #ff8791;
+}
+.video-frame {
+  min-width: 0;
+}
+.video-frame video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #111;
+}
+.video-frame video:focus-visible {
+  outline: 3px solid #ff8791;
+  outline-offset: 5px;
+}
+.video-error {
+  padding: 20px;
+  margin: 0;
+  line-height: 1.6;
+}
+.video-error a {
+  text-decoration: underline;
+}
+@media (max-width: 760px) {
+  .hero-video {
+    padding: 48px 6%;
+  }
+  .video-heading {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+}
