@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { APIError, type CollectionConfig } from 'payload'
 
 export const Models: CollectionConfig = {
@@ -6,7 +7,10 @@ export const Models: CollectionConfig = {
   admin: { description: 'Supported format: GLB (.glb), with textures embedded in the file.' },
   access: { read: () => true },
   fields: [{ name: 'alt', label: 'Model description', type: 'text', required: true }],
-  upload: { mimeTypes: ['model/gltf-binary', 'application/octet-stream'] },
+  upload: {
+    staticDir: path.resolve(process.env.DATA_DIR || '.', 'models'),
+    mimeTypes: ['model/gltf-binary', 'application/octet-stream'],
+  },
   hooks: {
     beforeOperation: [
       ({ args, operation }) => {

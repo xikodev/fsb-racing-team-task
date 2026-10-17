@@ -8,6 +8,11 @@ const dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
   agentRules: false,
+  output: 'standalone',
+  experimental: {
+    cpus: 1,
+    webpackMemoryOptimizations: true,
+  },
   images: {
     localPatterns: [
       {

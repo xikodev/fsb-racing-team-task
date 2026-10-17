@@ -1,0 +1,16 @@
+node_modules
+.next
+.production*
+.git
+.idea
+.env*
+!.env.example
+media
+models
+data
+coverage
+*.db*
+*.sqlite*
+*.tsbuildinfo
+next-env.d.ts
+*.pdf

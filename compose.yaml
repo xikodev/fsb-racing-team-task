@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    ports:
+      - '127.0.0.1:3000:3000'
+    environment:
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:?Set PAYLOAD_SECRET in .env}
+    volumes:
+      - app-data:/app/data
+    restart: unless-stopped
+    init: true
+
+volumes:
+  app-data:

@@ -41,6 +41,69 @@ On your first visit to the admin panel, create an administrator account. There a
 
 If the dependencies and `.env` are already set up, only `npm run dev` is needed. If your terminal cannot find `node` or `npm`, add Node.js to PATH or use the Node.js interpreter configured in WebStorm.
 
+## Production without Docker
+
+For the first deployment of your existing local content, stop editing in the admin panel and export a production copy:
+
+```bash
+npm run production:export
+npm run build
+DATA_DIR=./data DATABASE_URL=file:./data/payload.db npm run start
+```
+
+The export creates `data/payload.db`, `data/media/`, and `data/models/`. It uses SQLite's backup API, verifies the copied schema against a freshly migrated database, and records the initial migration on the copy. Your development database and uploads stay unchanged. Existing administrator accounts and content are preserved. Keep the same `PAYLOAD_SECRET` from `.env`.
+
+The destination must not already exist. For another snapshot, choose a different directory with `npm run production:export -- path/to/new-directory`. This command is only for the initial development-to-production transition, not for upgrading an existing production database.
+
+For an empty production installation, skip the export, then build and start with the same `DATA_DIR` and `DATABASE_URL` shown above. The start script creates the data directory; migrations prepare the schema on the first request. Create an administrator through `/admin`.
+
+The build uses Next.js standalone output, one build worker, and a 1536 MB JavaScript heap limit. `npm run start` copies the static assets into the standalone directory and starts its server. Use `PORT=3001` if port 3000 is occupied. Stop with Ctrl+C.
+
+Committed migrations live in `src/migrations/` and run automatically when Payload initializes in production. After future CMS schema changes, run `npm run migrate:create -- describe-the-change`, review the generated migration, and rebuild. Back up production data before applying schema changes. Keep `npm run dev` pointed at the development database.
+
+## Docker
+
+Requires Docker Engine and the Docker Compose plugin. Make sure `.env` contains a strong `PAYLOAD_SECRET`, then run:
+
+```bash
+docker compose up --build -d
+docker compose ps
+```
+
+Open http://localhost:3000 and http://localhost:3000/admin. Stop the development server first if it is using port 3000. The default Compose configuration binds to localhost, ready for a reverse proxy such as Nginx.
+
+The container runs Node.js 24.13.0 as the unprivileged `node` user. Its named volume, `app-data`, stores the SQLite database and both upload directories under `/app/data`. The Docker image excludes `.env`, databases, local uploads, and IDE files. The secret is provided at runtime; a new installation starts without local content or accounts. `/api/health` verifies that the app and database are ready.
+
+To transfer your current content **before the first container startup**, use an empty Docker volume and run:
+
+```bash
+npm run production:export
+docker compose create --build
+docker compose cp data/. app:/app/data
+docker compose run --rm --no-deps --user root --entrypoint chown app -R node:node /app/data
+docker compose up -d
+```
+
+If `data/` already contains the export you want, skip the first command. The one-time ownership command makes the copied files writable by the unprivileged application user. Do not copy over an existing production installation; back it up first.
+
+```bash
+docker compose logs -f app        # View logs
+docker compose restart app        # Restart without losing content
+docker compose down              # Stop and remove containers, keeping the volume
+```
+
+Do not use `docker compose down -v` unless you intend to delete the database and uploads. For a consistent backup, stop the app and copy the entire `/app/data` directory before starting it again. Rebuilding the image does not replace the named volume. Run one application instance with this local SQLite setup.
+
+The same Dockerfile can also be built and run with Podman:
+
+```bash
+podman build --format docker -t fsb-racing-team .
+podman run -d --name fsb-racing-team \
+  -p 127.0.0.1:3000:3000 --env-file .env \
+  -e DATABASE_URL=file:/app/data/payload.db -e DATA_DIR=/app/data \
+  -v fsb-racing-data:/app/data fsb-racing-team
+```
+
 ## Editing the homepage
 
 1. Open `/admin` and sign in.
@@ -89,10 +152,12 @@ The viewer uses [`@google/model-viewer`](https://modelviewer.dev/) **4.2.0**, lo
 
 ## Environment variables
 
-| Variable         | Description                                                                         |
-| ---------------- | ----------------------------------------------------------------------------------- |
-| `DATABASE_URL`   | SQLite database path. Defaults to `file:./payload.db` in the example configuration. |
-| `PAYLOAD_SECRET` | A random secret used for authentication. Keep it private.                           |
+| Variable         | Description                                                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`   | SQLite database path. Defaults to `file:./payload.db` in the example configuration.                         |
+| `PAYLOAD_SECRET` | A random secret used for authentication. Keep it private.                                                   |
+| `DATA_DIR`       | Parent directory for uploads. Local development defaults to the project directory; Docker uses `/app/data`. |
+| `PORT`           | Server port; defaults to 3000.                                                                              |
 
 Payload creates the database during the first development startup. Uploaded images and videos are stored in `media/`; GLB models are stored in `models/`. The database, uploads, `.env`, installed dependencies, and build output are excluded from Git.
 
@@ -106,9 +171,11 @@ npm test                  # Run isolated homepage block tests
 npm run build             # Create a production build
 npm run start             # Start an existing production build
 npm run generate:types    # Regenerate types after changing the CMS schema
+npm run migrate:create    # Generate a migration after schema changes
+npm run production:export # Copy current local content for its first production deployment
 ```
 
-Development startup, authentication, type checking, linting, and homepage block integration tests have been verified. Hero Video playback, muted autoplay, reduced-motion behavior, loop settings, and mobile layout were also checked in Chrome. Gallery filters, multiple galleries, image loading, mobile layout, and the no-JavaScript fallback were checked in Chrome as well. 3D model loading, rotation speed, pause/resume, drag controls, zoom, reduced-motion preferences, mobile layout, and missing-file errors were also checked in Chrome. The production build has not yet been fully verified because previous attempts were interrupted by IDE crashes. Production database migrations and Docker setup will be added in a later step.
+Type checking, linting, and all nine homepage integration tests have been verified. Browser checks cover video playback, gallery filtering, 3D controls, reduced-motion preferences, mobile layouts, and error states. Production checks also passed for standalone startup, fresh database migrations, existing-content transfer, administrator login, uploads, the health endpoint, and persistence after recreating the container. The Dockerfile was built and run with Podman in Docker image format; Docker Engine was not installed on the development machine.
 
 ## Tests
 

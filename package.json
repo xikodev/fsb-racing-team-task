@@ -5,15 +5,17 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=2048\" next build --webpack",
+    "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=1536\" next build --webpack",
     "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation eslint .",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
-    "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
+    "start": "node scripts/start-production.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test --test-force-exit --test-isolation=none tests/*.test.ts"
+    "test": "node --import tsx --test --test-force-exit --test-isolation=none tests/*.test.ts",
+    "production:export": "node scripts/export-production.mjs",
+    "migrate:create": "npm run payload -- migrate:create"
   },
   "dependencies": {
     "@google/model-viewer": "4.2.0",

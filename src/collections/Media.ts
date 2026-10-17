@@ -1,3 +1,4 @@
+import path from 'node:path'
 import type { CollectionConfig } from 'payload'
 
 export const Media: CollectionConfig = {
@@ -13,6 +14,7 @@ export const Media: CollectionConfig = {
     },
   ],
   upload: {
+    staticDir: path.resolve(process.env.DATA_DIR || '.', 'media'),
     mimeTypes: ['image/*', 'video/mp4', 'video/webm'],
   },
 }
