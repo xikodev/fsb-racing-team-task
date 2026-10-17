@@ -198,3 +198,93 @@ test('Hero Video saves an uploaded video, poster, and playback settings', async 
     )
   }
 })
+
+test('Image Gallery saves ordered images, captions, and multiple tags', async () => {
+  const editor = (await payload.find({ collection: 'users', limit: 1 })).docs[0]
+  const image = (
+    await payload.find({
+      collection: 'media',
+      where: { mimeType: { contains: 'image/' } },
+      limit: 1,
+    })
+  ).docs[0]
+  assert.ok(editor && image)
+  await payload.updateGlobal({
+    slug: 'homepage',
+    overrideAccess: false,
+    user: { ...editor, collection: 'users' },
+    data: {
+      layout: [
+        {
+          blockType: 'imageGallery',
+          title: 'Life at the track',
+          description: 'Built together.',
+          images: [
+            {
+              image: image.id,
+              caption: 'First lap',
+              tags: [{ tag: 'Testing' }, { tag: 'Competition' }],
+            },
+            {
+              image: image.id,
+              caption: 'In the workshop',
+              tags: [{ tag: ' Workshop ' }, { tag: 'workshop' }],
+            },
+            { image: image.id, caption: 'Team photo' },
+          ],
+        },
+      ],
+    },
+  })
+  const block = (await payload.findGlobal({ slug: 'homepage', depth: 1, overrideAccess: false }))
+    .layout?.[0]
+  assert.ok(block?.blockType === 'imageGallery')
+  assert.deepEqual(
+    block.images.map(({ caption }) => caption),
+    ['First lap', 'In the workshop', 'Team photo'],
+  )
+  assert.ok(typeof block.images[0].image === 'object')
+  assert.equal(block.images[0].image.alt, 'Test car photo')
+  const { getGalleryImages, filterGalleryImages } = await import('../src/components/gallery')
+  const images = getGalleryImages(block.images)
+  assert.equal(filterGalleryImages(images, null).length, 3)
+  assert.equal(filterGalleryImages(images, 'testing')[0].caption, 'First lap')
+  assert.equal(filterGalleryImages(images, 'competition')[0].caption, 'First lap')
+  assert.equal(filterGalleryImages(images, 'workshop').length, 1)
+  assert.equal(images[1].tags.length, 1)
+  assert.equal(filterGalleryImages(images, 'missing').length, 0)
+  assert.equal(getGalleryImages([{ image: image.id }]).length, 0)
+})
+
+test('Image Gallery rejects missing images, empty tags, and video uploads', async () => {
+  const image = (
+    await payload.find({
+      collection: 'media',
+      where: { mimeType: { contains: 'image/' } },
+      limit: 1,
+    })
+  ).docs[0]
+  const video = (
+    await payload.find({
+      collection: 'media',
+      where: { mimeType: { equals: 'video/webm' } },
+      limit: 1,
+    })
+  ).docs[0]
+  assert.ok(image && video)
+  for (const block of [
+    { blockType: 'imageGallery' as const, title: 'Empty', images: [] },
+    { blockType: 'imageGallery' as const, title: 'Missing image', images: [{}] },
+    { blockType: 'imageGallery' as const, title: '', images: [{ image: image.id }] },
+    { blockType: 'imageGallery' as const, title: 'Video', images: [{ image: video.id }] },
+    {
+      blockType: 'imageGallery' as const,
+      title: 'Empty tag',
+      images: [{ image: image.id, tags: [{ tag: '' }] }],
+    },
+  ]) {
+    await assert.rejects(() =>
+      payload.updateGlobal({ slug: 'homepage', data: { layout: [block] } }),
+    )
+  }
+})

@@ -2,7 +2,7 @@
 
 A Payload CMS project built with Next.js and SQLite.
 
-The homepage is managed through Payload and supports editable Hero Block and Hero Video blocks. 3D View and Image Gallery will be added in later steps.
+The homepage is managed through Payload and supports editable Hero Block, Hero Video, and Image Gallery blocks. 3D View will be added in a later step.
 
 ## Requirements
 
@@ -63,6 +63,14 @@ Save the homepage and refresh the public page. MP4 files should use a browser-co
 
 For a quick upload test, use `tests/fixtures/hero-video.webm`. It is an original two-second synthetic test clip without audio, not racing footage. It is included in the repository so tests do not require FFmpeg or external downloads.
 
+## Image Gallery
+
+In **Homepage**, add an **Image Gallery** block and enter a title and optional description. Under **Images**, add one row per image and select or upload an image from Media. Add meaningful alt text to the uploaded file. Each row can have an optional caption and multiple **Tags**, such as Workshop, Testing, and Competition. Reorder rows to change the display order.
+
+Save and refresh the public homepage. Filter buttons appear automatically from the tags used in that gallery. **All** includes every image, including images without tags. An image with multiple tags appears under each matching filter. Tag matching ignores capitalization and surrounding spaces. Filtering stays within each gallery and does not reload the page. Without JavaScript, all images remain visible.
+
+The grid uses three columns on desktop, two on smaller screens, and one on phones. Images are cropped to a 4:3 preview; captions appear underneath. Only image files can be selected in this block.
+
 ## Environment variables
 
 | Variable         | Description                                                                         |
@@ -84,11 +92,11 @@ npm run start             # Start an existing production build
 npm run generate:types    # Regenerate types after changing the CMS schema
 ```
 
-Development startup, authentication, type checking, linting, and homepage block integration tests have been verified. Hero Video playback, muted autoplay, reduced-motion behavior, loop settings, and mobile layout were also checked in Chrome. The production build has not yet been fully verified because previous attempts were interrupted by IDE crashes. Production database migrations and Docker setup will be added in a later step.
+Development startup, authentication, type checking, linting, and homepage block integration tests have been verified. Hero Video playback, muted autoplay, reduced-motion behavior, loop settings, and mobile layout were also checked in Chrome. Gallery filters, multiple galleries, image loading, mobile layout, and the no-JavaScript fallback were checked in Chrome as well. The production build has not yet been fully verified because previous attempts were interrupted by IDE crashes. Production database migrations and Docker setup will be added in a later step.
 
 ## Tests
 
-`npm test` checks public read access, authenticated editing, image upload relationships, required fields, button link validation, an empty homepage, and Hero Video upload relationships and playback settings. It also checks that an image cannot be selected as a video or a video as a poster. Tests use a separate temporary SQLite database and upload directory, which are removed after the test run. Existing accounts and content are not used by these tests.
+`npm test` checks public read access, authenticated editing, image upload relationships, required fields, button link validation, an empty homepage, and Hero Video upload relationships and playback settings. It also checks that an image cannot be selected as a video or a video as a poster. Gallery tests cover ordered images, captions, multiple tags, filtering, untagged images, duplicate tag normalization, missing images, and rejection of video files. Tests use a separate temporary SQLite database and upload directory, which are removed after the test run. Existing accounts and content are not used by these tests.
 
 The test runner uses one process and exits after the tests finish because the development schema tooling starts background services.
 

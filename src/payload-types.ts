@@ -327,7 +327,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface Homepage {
   id: number;
-  layout?: (HeroBlock | HeroVideoBlock)[] | null;
+  layout?: (HeroBlock | HeroVideoBlock | ImageGalleryBlock)[] | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -377,6 +377,34 @@ export interface HeroVideoBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ImageGalleryBlock".
+ */
+export interface ImageGalleryBlock {
+  title: string;
+  description?: string | null;
+  /**
+   * Add images in the order they should appear in the gallery.
+   */
+  images: {
+    image: number | Media;
+    caption?: string | null;
+    /**
+     * Optional filters, for example Workshop, Testing, or Competition.
+     */
+    tags?:
+      | {
+          tag: string;
+          id?: string | null;
+        }[]
+      | null;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'imageGallery';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "homepage_select".
  */
 export interface HomepageSelect<T extends boolean = true> {
@@ -385,6 +413,7 @@ export interface HomepageSelect<T extends boolean = true> {
     | {
         hero?: T | HeroBlockSelect<T>;
         heroVideo?: T | HeroVideoBlockSelect<T>;
+        imageGallery?: T | ImageGalleryBlockSelect<T>;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -414,6 +443,29 @@ export interface HeroVideoBlockSelect<T extends boolean = true> {
   poster?: T;
   autoplay?: T;
   loop?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ImageGalleryBlock_select".
+ */
+export interface ImageGalleryBlockSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  images?:
+    | T
+    | {
+        image?: T;
+        caption?: T;
+        tags?:
+          | T
+          | {
+              tag?: T;
+              id?: T;
+            };
+        id?: T;
+      };
   id?: T;
   blockName?: T;
 }

@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { Hero } from '@/components/Hero'
 import { HeroVideo } from '@/components/HeroVideo'
+import { ImageGallery } from '@/components/ImageGallery'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +29,8 @@ export default async function HomePage() {
         {homepage.layout?.length ? (
           homepage.layout.map((block, index) => {
             switch (block.blockType) {
+              case 'imageGallery':
+                return <ImageGallery key={block.id || index} {...block} first={index === 0} />
               case 'heroVideo':
                 return <HeroVideo key={block.id || index} {...block} first={index === 0} />
               case 'hero':
