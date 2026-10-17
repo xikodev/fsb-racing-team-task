@@ -304,3 +304,60 @@ h2 {
     grid-template-columns: 1fr;
   }
 }
+
+.three-d-view {
+  padding: 72px 6%;
+  border-bottom: 1px solid #d8d7d2;
+}
+.three-d-view h1,
+.three-d-view h2 {
+  font-size: clamp(36px, 4.8vw, 68px);
+}
+.model-viewer-frame {
+  margin-top: 32px;
+}
+model-viewer {
+  display: block;
+  width: 100%;
+  height: clamp(320px, 55vh, 640px);
+  background: #e8e7e2;
+}
+model-viewer:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 4px;
+}
+.model-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.model-controls p {
+  flex: 1 1 300px;
+  color: #5a5a5a;
+}
+.model-controls a {
+  text-decoration: underline;
+}
+.model-controls button {
+  padding: 10px 16px;
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+  background: transparent;
+  border: 1px solid #777;
+}
+.model-controls button:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 4px;
+}
+.model-controls button:disabled {
+  cursor: default;
+}
+@media (max-width: 760px) {
+  .three-d-view {
+    padding: 48px 6%;
+  }
+}

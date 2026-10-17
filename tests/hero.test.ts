@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import type { SQLiteAdapter } from '@payloadcms/db-sqlite'
 import assert from 'node:assert/strict'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { after, before, test } from 'node:test'
@@ -21,6 +21,10 @@ before(async () => {
   const media = config.collections.find((collection) => collection.slug === 'media')
   if (media && typeof media.upload === 'object') {
     media.upload.staticDir = path.join(directory, 'media')
+  }
+  const models = config.collections.find((collection) => collection.slug === 'models')
+  if (models && typeof models.upload === 'object') {
+    models.upload.staticDir = path.join(directory, 'models')
   }
   payload = await getPayload({ config, cron: false })
 })
@@ -285,6 +289,81 @@ test('Image Gallery rejects missing images, empty tags, and video uploads', asyn
   ]) {
     await assert.rejects(() =>
       payload.updateGlobal({ slug: 'homepage', data: { layout: [block] } }),
+    )
+  }
+})
+
+test('3D View saves a GLB upload and rotation settings for public viewing', async () => {
+  const editor = (await payload.find({ collection: 'users', limit: 1 })).docs[0]
+  assert.ok(editor)
+  const model = await payload.create({
+    collection: 'models',
+    overrideAccess: false,
+    user: { ...editor, collection: 'users' },
+    data: { alt: 'A red test cube' },
+    filePath: path.resolve('tests/fixtures/cube.glb'),
+  })
+  assert.equal(model.mimeType, 'model/gltf-binary')
+  for (const rotate of [true, false]) {
+    await payload.updateGlobal({
+      slug: 'homepage',
+      overrideAccess: false,
+      user: { ...editor, collection: 'users' },
+      data: {
+        layout: [
+          {
+            blockType: 'threeDView',
+            title: 'Explore the car',
+            model: model.id,
+            rotate,
+            rotationSpeed: 35,
+          },
+        ],
+      },
+    })
+    const block = (await payload.findGlobal({ slug: 'homepage', depth: 1, overrideAccess: false }))
+      .layout?.[0]
+    assert.ok(block?.blockType === 'threeDView')
+    assert.equal(block.rotate, rotate)
+    assert.equal(block.rotationSpeed, 35)
+    assert.ok(typeof block.model === 'object')
+    assert.equal(block.model.alt, 'A red test cube')
+    assert.ok(block.model.url?.endsWith('.glb'))
+  }
+  for (const block of [
+    { blockType: 'threeDView' as const, title: 'Missing model' },
+    { blockType: 'threeDView' as const, title: '', model: model.id },
+    { blockType: 'threeDView' as const, title: 'Too slow', model: model.id, rotationSpeed: 0 },
+    { blockType: 'threeDView' as const, title: 'Too fast', model: model.id, rotationSpeed: 181 },
+  ]) {
+    await assert.rejects(() =>
+      payload.updateGlobal({ slug: 'homepage', data: { layout: [block] } }),
+    )
+  }
+})
+
+test('3D uploads reject anonymous writes, wrong extensions, and invalid GLB headers', async () => {
+  const data = await readFile('tests/fixtures/cube.glb')
+  await assert.rejects(() =>
+    payload.create({
+      collection: 'models',
+      overrideAccess: false,
+      data: { alt: 'Denied' },
+      file: { data, size: data.length, name: 'denied.glb', mimetype: 'model/gltf-binary' },
+    }),
+  )
+  for (const [name, buffer] of [
+    ['cube.fbx', data],
+    ['cube.gltf', data],
+    ['fake.glb', Buffer.from('This is not a GLB file')],
+    ['truncated.glb', data.subarray(0, data.length - 4)],
+  ] as const) {
+    await assert.rejects(() =>
+      payload.create({
+        collection: 'models',
+        data: { alt: 'Invalid model' },
+        file: { data: buffer, size: buffer.length, name, mimetype: 'application/octet-stream' },
+      }),
     )
   }
 })

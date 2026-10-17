@@ -16,6 +16,8 @@
     "test": "node --import tsx --test --test-force-exit --test-isolation=none tests/*.test.ts"
   },
   "dependencies": {
+    "@google/model-viewer": "4.2.0",
+    "@payloadcms/db-sqlite": "3.91.0",
     "@payloadcms/next": "3.91.0",
     "@payloadcms/richtext-lexical": "3.91.0",
     "@payloadcms/ui": "3.91.0",
@@ -26,8 +28,7 @@
     "payload": "3.91.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "sharp": "0.35.5",
-    "@payloadcms/db-sqlite": "3.91.0"
+    "sharp": "0.35.5"
   },
   "devDependencies": {
     "@types/node": "22.19.9",

@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    models: Model;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +79,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    models: ModelsSelect<false> | ModelsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -167,6 +169,27 @@ export interface Media {
   focalY?: number | null;
 }
 /**
+ * Supported format: GLB (.glb), with textures embedded in the file.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "models".
+ */
+export interface Model {
+  id: number;
+  alt: string;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -197,6 +220,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'models';
+        value: number | Model;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -283,6 +310,24 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "models_select".
+ */
+export interface ModelsSelect<T extends boolean = true> {
+  alt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -327,7 +372,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface Homepage {
   id: number;
-  layout?: (HeroBlock | HeroVideoBlock | ImageGalleryBlock)[] | null;
+  layout?: (HeroBlock | HeroVideoBlock | ThreeDViewBlock | ImageGalleryBlock)[] | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -377,6 +422,26 @@ export interface HeroVideoBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ThreeDViewBlock".
+ */
+export interface ThreeDViewBlock {
+  title: string;
+  description?: string | null;
+  /**
+   * Supported format: GLB (.glb). Embed textures when exporting the model.
+   */
+  model: number | Model;
+  rotate?: boolean | null;
+  /**
+   * Used when automatic rotation is enabled. Default: 20 degrees per second.
+   */
+  rotationSpeed: number;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'threeDView';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ImageGalleryBlock".
  */
 export interface ImageGalleryBlock {
@@ -413,6 +478,7 @@ export interface HomepageSelect<T extends boolean = true> {
     | {
         hero?: T | HeroBlockSelect<T>;
         heroVideo?: T | HeroVideoBlockSelect<T>;
+        threeDView?: T | ThreeDViewBlockSelect<T>;
         imageGallery?: T | ImageGalleryBlockSelect<T>;
       };
   updatedAt?: T;
@@ -443,6 +509,19 @@ export interface HeroVideoBlockSelect<T extends boolean = true> {
   poster?: T;
   autoplay?: T;
   loop?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ThreeDViewBlock_select".
+ */
+export interface ThreeDViewBlockSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  model?: T;
+  rotate?: T;
+  rotationSpeed?: T;
   id?: T;
   blockName?: T;
 }

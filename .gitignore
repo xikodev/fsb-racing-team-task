@@ -54,3 +54,5 @@ next-env.d.ts
 *.sqlite3-shm
 *.sqlite3-wal
 *.sqlite3-journal
+
+/models

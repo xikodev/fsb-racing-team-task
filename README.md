@@ -2,7 +2,7 @@
 
 A Payload CMS project built with Next.js and SQLite.
 
-The homepage is managed through Payload and supports editable Hero Block, Hero Video, and Image Gallery blocks. 3D View will be added in a later step.
+The homepage is managed through Payload and supports four editable blocks: Hero Block, Hero Video, 3D View, and Image Gallery.
 
 ## Requirements
 
@@ -71,6 +71,22 @@ Save and refresh the public homepage. Filter buttons appear automatically from t
 
 The grid uses three columns on desktop, two on smaller screens, and one on phones. Images are cropped to a 4:3 preview; captions appear underneath. Only image files can be selected in this block.
 
+## 3D View
+
+In **Homepage**, add a **3D View** block, enter a title and optional description, then upload or select a file in **Model**. Models are stored in a separate **3D Models** collection. Fill in **Model description** with meaningful alt text.
+
+**Supported format: GLB (.glb), version 2.0.** Export with textures embedded in the file. GLTF and FBX uploads are not supported. The upload checks the extension and GLB header; actual model decoding happens in the browser, which displays an error if the model cannot be rendered.
+
+- **Automatic rotation** is off by default.
+- **Rotation speed** accepts 1–180 degrees per second; the default is 20.
+- Visitors can drag or use arrow keys to rotate and scroll or pinch to zoom.
+- Automatic rotation respects reduced-motion preferences. A pause/resume button is available when rotation is enabled.
+- The GLB download link also works without JavaScript. Interactive rendering requires JavaScript and a browser with WebGL support.
+
+For a quick upload test, use `tests/fixtures/cube.glb`. It is an original, untextured red cube included with the project, not a model of the team's car. No external model download is required.
+
+The viewer uses [`@google/model-viewer`](https://modelviewer.dev/) **4.2.0**, loaded on the client from the installed package. For the simplest local test, use an uncompressed GLB with embedded resources. Compressed models may require the viewer's external decoder resources and a network connection.
+
 ## Environment variables
 
 | Variable         | Description                                                                         |
@@ -78,7 +94,7 @@ The grid uses three columns on desktop, two on smaller screens, and one on phone
 | `DATABASE_URL`   | SQLite database path. Defaults to `file:./payload.db` in the example configuration. |
 | `PAYLOAD_SECRET` | A random secret used for authentication. Keep it private.                           |
 
-Payload creates the database during the first development startup. Uploaded files are stored in `media/`. The database, uploads, `.env`, installed dependencies, and build output are excluded from Git.
+Payload creates the database during the first development startup. Uploaded images and videos are stored in `media/`; GLB models are stored in `models/`. The database, uploads, `.env`, installed dependencies, and build output are excluded from Git.
 
 ## Commands
 
@@ -92,11 +108,11 @@ npm run start             # Start an existing production build
 npm run generate:types    # Regenerate types after changing the CMS schema
 ```
 
-Development startup, authentication, type checking, linting, and homepage block integration tests have been verified. Hero Video playback, muted autoplay, reduced-motion behavior, loop settings, and mobile layout were also checked in Chrome. Gallery filters, multiple galleries, image loading, mobile layout, and the no-JavaScript fallback were checked in Chrome as well. The production build has not yet been fully verified because previous attempts were interrupted by IDE crashes. Production database migrations and Docker setup will be added in a later step.
+Development startup, authentication, type checking, linting, and homepage block integration tests have been verified. Hero Video playback, muted autoplay, reduced-motion behavior, loop settings, and mobile layout were also checked in Chrome. Gallery filters, multiple galleries, image loading, mobile layout, and the no-JavaScript fallback were checked in Chrome as well. 3D model loading, rotation speed, pause/resume, drag controls, zoom, reduced-motion preferences, mobile layout, and missing-file errors were also checked in Chrome. The production build has not yet been fully verified because previous attempts were interrupted by IDE crashes. Production database migrations and Docker setup will be added in a later step.
 
 ## Tests
 
-`npm test` checks public read access, authenticated editing, image upload relationships, required fields, button link validation, an empty homepage, and Hero Video upload relationships and playback settings. It also checks that an image cannot be selected as a video or a video as a poster. Gallery tests cover ordered images, captions, multiple tags, filtering, untagged images, duplicate tag normalization, missing images, and rejection of video files. Tests use a separate temporary SQLite database and upload directory, which are removed after the test run. Existing accounts and content are not used by these tests.
+`npm test` checks public read access, authenticated editing, image upload relationships, required fields, button link validation, an empty homepage, and Hero Video upload relationships and playback settings. It also checks that an image cannot be selected as a video or a video as a poster. Gallery tests cover ordered images, captions, multiple tags, filtering, untagged images, duplicate tag normalization, missing images, and rejection of video files. 3D View tests cover GLB uploads, public model relationships, rotation settings, speed limits, anonymous write rejection, and invalid file headers and extensions. Tests use a separate temporary SQLite database and upload directory, which are removed after the test run. Existing accounts and content are not used by these tests.
 
 The test runner uses one process and exits after the tests finish because the development schema tooling starts background services.
 

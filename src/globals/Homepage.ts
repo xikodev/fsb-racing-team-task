@@ -2,6 +2,7 @@ import type { GlobalConfig } from 'payload'
 import { HeroBlock } from '../blocks/HeroBlock'
 import { HeroVideo } from '../blocks/HeroVideo'
 import { ImageGallery } from '../blocks/ImageGallery'
+import { ThreeDView } from '../blocks/ThreeDView'
 
 export const Homepage: GlobalConfig = {
   slug: 'homepage',
@@ -15,7 +16,7 @@ export const Homepage: GlobalConfig = {
       name: 'layout',
       label: 'Page blocks',
       type: 'blocks',
-      blocks: [HeroBlock, HeroVideo, ImageGallery],
+      blocks: [HeroBlock, HeroVideo, ThreeDView, ImageGallery],
     },
   ],
 }
