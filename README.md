@@ -190,3 +190,133 @@ Payload and its SQLite, admin UI, and rich text packages use version **3.91.0**.
 See `package.json` for direct dependencies and `package-lock.json` for the complete locked dependency tree. Use `npm ci` to install the locked versions.
 
 The project started from the official Payload starter generated with `create-payload-app@3.91.0`. Next.js and sharp were updated to patched versions. Sass and DOMPurify overrides are listed in `package.json`.
+
+## Task 2: Ubuntu VM with systemd and Nginx
+
+The VM uses Ubuntu Server 24.04.5 LTS (x86_64), without a desktop environment, installed through virt-manager/KVM on Fedora. VM settings: 2 CPUs, 3072 MiB RAM, a 25 GB disk, and the default NAT network. Enable OpenSSH during installation. Find its address with `hostname -I` and connect from Fedora with `ssh xiko@VM_IP`.
+
+The files in `deploy/` assume the user/group is `xiko`, the project is `/home/xiko/apps/fsb-racing-team-task`, and Node.js 24.13.0 is installed at `/opt/node-v24.13.0-linux-x64`, with `node`, `npm`, and `npx` linked into `/usr/local/bin`. Adjust the user and paths for a different VM. This setup runs Node directly through systemd.
+
+Install the Ubuntu packages with `sudo apt update` and `sudo apt install -y nginx git curl ca-certificates xz-utils`. Install the official Node.js Linux x64 archive after verifying its SHA256 checksum. Check `node -v` and `npm -v`: the project uses 24.13.0 and 11.6.2.
+
+### Prepare the application
+
+Inside Ubuntu:
+
+```bash
+mkdir -p ~/apps
+cd ~/apps
+git clone https://github.com/xikodev/fsb-racing-team-task.git
+cd fsb-racing-team-task
+npm ci
+```
+
+Transfer the existing production export and secret from the Fedora project directory, replacing `VM_IP`:
+
+```bash
+scp .env xiko@VM_IP:~/apps/fsb-racing-team-task/.env
+scp -r data xiko@VM_IP:~/apps/fsb-racing-team-task/
+```
+
+Inside the VM, keep the existing `PAYLOAD_SECRET` and set these values in `.env`:
+
+```dotenv
+DATABASE_URL=file:/home/xiko/apps/fsb-racing-team-task/data/payload.db
+DATA_DIR=/home/xiko/apps/fsb-racing-team-task/data
+```
+
+```bash
+cd ~/apps/fsb-racing-team-task
+chmod 600 .env
+npm run build
+```
+
+### Install systemd and Nginx configuration
+
+If the new files are not on GitHub yet, copy them from the Fedora project directory:
+
+```bash
+scp -r deploy xiko@VM_IP:~/apps/fsb-racing-team-task/
+```
+
+Stop any manually running app with Ctrl+C. Then run inside Ubuntu:
+
+```bash
+cd ~/apps/fsb-racing-team-task
+sudo cp deploy/payload.service /etc/systemd/system/payload.service
+sudo systemd-analyze verify /etc/systemd/system/payload.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now payload
+sudo systemctl status payload --no-pager
+curl -fsS http://127.0.0.1:3000/api/health
+```
+
+The assignment's verification script specifically checks the service name `payload`. The unit runs as `xiko`, reads the private `.env`, binds Node to loopback port 3000, restarts on failure, and starts at boot. The startup script refreshes standalone static assets, and Payload applies pending production migrations.
+
+```bash
+sudo cp deploy/nginx.conf /etc/nginx/sites-available/fsb-racing
+sudo ln -sfn /etc/nginx/sites-available/fsb-racing /etc/nginx/sites-enabled/fsb-racing
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+```
+
+Only after the Nginx configuration test succeeds:
+
+```bash
+sudo systemctl enable --now nginx
+sudo systemctl reload nginx
+curl -fsS http://127.0.0.1/api/health
+```
+
+Nginx proxies port 80 to Node, including the homepage, admin, API, and uploads. It allows upload requests up to 200 MB and disables response buffering for streaming. Open `http://VM_IP/` and `http://VM_IP/admin` from Fedora. If UFW is enabled, allow OpenSSH and Nginx HTTP before testing remote access. Port 3000 stays local to the VM.
+
+### Verify automatic startup
+
+```bash
+systemctl is-enabled payload nginx
+sudo reboot
+```
+
+Reconnect over SSH after boot:
+
+```bash
+systemctl is-active payload nginx
+curl -fsS http://127.0.0.1/api/health
+```
+
+Both services should be `active`; the health response should be `{"status":"ok"}`. Check admin login, video, gallery filters, and the 3D viewer in the Fedora browser as well.
+
+Troubleshooting:
+
+```bash
+sudo journalctl -u payload -n 80 --no-pager
+sudo systemctl restart payload
+sudo tail -n 50 /var/log/nginx/error.log
+```
+
+For updates: back up the data, stop `payload`, pull committed changes, run `npm ci` and `npm run build`, start `payload`, and check the health endpoint.
+
+### Required screenshot
+
+Download and inspect the assignment script before executing it:
+
+```bash
+curl -fL https://gist.githubusercontent.com/Lov-R/bb950e684c9b26380a7a2e36124402b3/raw/regrutacijski_test.sh -o /tmp/regrutacijski_test.sh
+less /tmp/regrutacijski_test.sh
+```
+
+The reviewed script reports service status, Nginx syntax, listening ports, HTTP responses, and process ownership. Run the assignment command in a root shell so its `nginx -t` check has the required permissions:
+
+```bash
+sudo -i
+curl -sSL https://gist.githubusercontent.com/Lov-R/bb950e684c9b26380a7a2e36124402b3/raw/regrutacijski_test.sh | bash
+exit
+```
+
+Capture the SSH terminal on Fedora with the command and results visible. Save an actual JPEG named **Drugi_zadatak.jpg** in the repository root. This screenshot is required in addition to the README.
+
+### VM verification result
+
+After rebooting the Ubuntu VM, both `payload` and `nginx` were active and the health endpoint returned `{"status":"ok"}`. The assignment report confirmed that `payload` is enabled at boot, the Nginx configuration is valid, port 80 returns HTTP 200, and the Node process runs as `xiko`. Node listens on `127.0.0.1:3000`, while Nginx listens on port 80.
+
+The command and report are captured in [Drugi_zadatak.jpg](Drugi_zadatak.jpg).

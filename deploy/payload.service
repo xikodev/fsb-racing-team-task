@@ -1,0 +1,22 @@
+[Unit]
+Description=FSB Racing Team Payload application
+After=network.target
+
+[Service]
+Type=simple
+User=xiko
+Group=xiko
+WorkingDirectory=/home/xiko/apps/fsb-racing-team-task
+EnvironmentFile=/home/xiko/apps/fsb-racing-team-task/.env
+Environment=NODE_ENV=production
+Environment=HOSTNAME=127.0.0.1
+Environment=PORT=3000
+ExecStart=/usr/local/bin/node /home/xiko/apps/fsb-racing-team-task/scripts/start-production.mjs
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
